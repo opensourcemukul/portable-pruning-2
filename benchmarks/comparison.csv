@@ -1,0 +1,2 @@
+timestamp,model,method,compression,baseline_flops,pruned_flops,baseline_latency,pruned_latency,baseline_ram,pruned_ram
+2025-04-02T16:47:00,resnet18,l1,0.5,1.83 GMac,1.83 GMac,13.94,13.96,370.92,365.09

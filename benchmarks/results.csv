@@ -1,0 +1,2 @@
+timestamp,model,method,compression,flops,params,latency_ms,ram_mb,onnx_exported
+2025-04-02T16:47:00,resnet18,l1,0.5,1.83 GMac,11.69 M,13.96,365.09,yes

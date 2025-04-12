@@ -1,0 +1,1 @@
+model,method,mode,compression,state,pytorch_latency,pytorch_ram,flops,params,onnx_latency,onnx_ram,pytorch_accuracy,onnx_accuracy

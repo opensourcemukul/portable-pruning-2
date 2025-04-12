@@ -1,0 +1,21 @@
+# requirements.txt
+
+# Core framework
+torch>=1.12
+torchvision>=0.13
+
+# Model export and deployment
+onnxruntime>=1.10
+
+# Image handling
+Pillow
+
+# CLI and configuration
+PyYAML
+argparse
+
+# Performance monitoring (optional)
+psutil
+
+# Deep Inversion dependencies (if using inversion-based pruning)
+torchvision.models
