@@ -6,7 +6,12 @@ import torch
 import torchvision.models as models
 from portable_pruning.utils.eval_utils import measure_latency, measure_memory
 from portable_pruning.utils.flops_counter import compute_flops
+import datetime
 
+# # Create a run-specific folder inside a hidden directory
+# timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+# output_dir = os.path.join(".outputs", f"run_{timestamp}")
+# os.makedirs(output_dir, exist_ok=True)
 # Import pruning strategies (if needed)
 from portable_pruning.strategies import l1_norm, batchnorm_gamma, red, autodfp
 
@@ -26,7 +31,7 @@ def export_to_onnx(model, dummy_input, export_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, required=True, choices=['resnet18', 'mobilenet_v2'])
+    parser.add_argument('--model', type=str, required=True, choices=['resnet18', 'resnet34', 'mobilenet_v2'])
     parser.add_argument('--method', type=str, required=True,
                         choices=['l1', 'batchnorm', 'red', 'autodfp', 'redpp', 'builtin'])
     parser.add_argument('--compression', type=float, required=True,
@@ -47,7 +52,7 @@ def main():
                         choices=['l1_unstructured', 'ln_structured', 'random_structured'],
                         help='Pruning mode for torch_builtin')
     parser.add_argument("--state", type=str, default="pruned", choices=["baseline", "pruned"], help="Whether baseline or pruned")
-
+    parser.add_argument("--output_dir", type=str, default=".outputs/latest", help="Where to save .pth and .onnx models")
     args = parser.parse_args()
 
     print(f"[INFO] Loading model: {args.model}")
@@ -99,15 +104,19 @@ def main():
     # Construct proper suffix including mode (for builtin methods)
     mode_suffix = f"_{args.mode}" if hasattr(args, "mode") and args.method == "builtin" else ""
 
+    os.makedirs(args.output_dir, exist_ok=True)
+
     # Save ONNX
     if args.onnx:
         dummy_input = torch.randn(1, 3, 224, 224).to(args.device)
         onnx_filename = f"{args.model}_{args.method}{mode_suffix}{state_suffix}.onnx"
-        export_to_onnx(pruned_model, dummy_input, onnx_filename)
+        onnx_path = os.path.join(args.output_dir, onnx_filename)
+        export_to_onnx(pruned_model, dummy_input, onnx_path)
 
     # Save PyTorch model
     model_filename = f"{args.model}_{args.method}{mode_suffix}{state_suffix}.pth"
-    torch.save(pruned_model.state_dict(), model_filename)
+    model_path = os.path.join(args.output_dir, model_filename)
+    torch.save(pruned_model.state_dict(), model_path)
     print(f"[INFO] Model saved to {model_filename}")
     # if args.onnx:
     #     dummy_input = torch.randn(1,3,224,224).to(args.device)

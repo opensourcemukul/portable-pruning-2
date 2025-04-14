@@ -52,11 +52,13 @@ def main():
     # Instantiate the proper model architecture
     if args.arch == "resnet18":
         model = models.resnet18(weights=None)
+    elif args.arch == "resnet34":
+        model = models.resnet34(weights=None)
     elif args.arch == "mobilenet_v2":
         model = models.mobilenet_v2(weights=None)
     else:
         raise ValueError(f"Unsupported architecture: {args.arch}")
-
+    
     # Load model checkpoint (the file should be saved as state_dict)
     # We use weights_only=False to ensure full state_dict is loaded properly.
     model.load_state_dict(torch.load(args.model_path, map_location=device, weights_only=False))

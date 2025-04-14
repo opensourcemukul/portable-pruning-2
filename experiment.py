@@ -2,45 +2,11 @@ import argparse
 import subprocess
 import csv
 import os
-
+import datetime
 def run_command(cmd):
     result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     return result.stdout
 
-# def extract_metric(output, key):
-#     for line in output.splitlines():
-#         if key in line:
-#             try:
-#                 return float(line.split(":")[-1].strip().replace("%", "").replace("MB", "").replace("ms/image", ""))
-#             except:
-#                 return ""
-#     return ""
-# def extract_metric(output, key):
-#     for line in output.splitlines():
-#         if key in line:
-#             # e.g. line => "[RESULT] FLOPs: 1.83 GMac"
-#             # or      => "[RESULT] Params: 11.69 M"
-#             try:
-#                 # Get the substring after the colon
-#                 value_str = line.split(":")[-1].strip()  # e.g. "1.83 GMac"
-#                 # Extract just the numeric portion
-#                 numeric_part = value_str.split()[0]      # "1.83"
-#                 return float(numeric_part)
-#             except:
-#                 return ""
-#     return ""
-# def extract_metric(output, key):
-#     for line in output.splitlines():
-#         if key in line:
-#             print(f"[DEBUG] Found line for {key}: {line}")
-#             try:
-#                 value_str = line.split(":")[-1].strip()
-#                 numeric_part = value_str.split()[0]
-#                 return float(numeric_part)
-#             except Exception as e:
-#                 print(f"[DEBUG] Error parsing: {e}")
-#                 return ""
-#     return ""
 def extract_metric(output, key):
     for line in output.splitlines():
         if key in line and line.startswith("[RESULT]"):
@@ -64,16 +30,23 @@ def get_onnx_filename(model, method, mode, state):
     return f"{model}_{method}_{mode}{suffix}.onnx"
 
 def main():
+    # Create timestamped folder for this experiment run
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_output_dir = os.path.join(".outputs", f"run_{timestamp}")
+    os.makedirs(run_output_dir, exist_ok=True)
     parser = argparse.ArgumentParser()
     parser.add_argument("--subset_size", type=int, default=100, help="Number of images to evaluate on")
     parser.add_argument("--results_file", type=str, default="experiment_results.csv", help="CSV file to store results")
+    parser.add_argument("--output_dir", type=str, default=".outputs/latest")
     args = parser.parse_args()
 
     # Define your experiment grid
-    models = ["resnet18", "mobilenet_v2"]
+    models = ["resnet18","resnet34","mobilenet_v2"]
+    # models = ["resnet34"]
     methods = ["builtin"]
     modes = ["l1_unstructured", "ln_structured", "random_structured"]
-    compressions = [0.1, 0.3, 0.5, 0.7, 0.9]
+    compressions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    # compressions = [0.1, 0.3, 0.5]
 
     # Open the CSV file in write mode initially to write header
     with open(args.results_file, "w", newline="") as f:
@@ -91,9 +64,12 @@ def main():
                     for state in ["baseline", "pruned"]:
                         print(f"\n===== Running: Model={model} | Method={method} | Mode={mode} | Compression={compression} | State={state} =====")
                         is_baseline = (state == "baseline")
-                        model_file = get_model_filename(model, method, mode, state)
-                        onnx_file = get_onnx_filename(model, method, mode, state)
-
+                        # model_file = get_model_filename(model, method, mode, state)
+                        # onnx_file = get_onnx_filename(model, method, mode, state)
+                        model_file = os.path.join(run_output_dir, get_model_filename(model, method, mode, state))
+                        onnx_file = os.path.join(run_output_dir, get_onnx_filename(model, method, mode, state))
+                        print(f"[DEBUG-toii] Using model_file: {model_file}")
+                        print(f"[DEBUG] Using onnx_file: {onnx_file}")
                         # --- Step 1: Run Pruning (or Baseline) ---
                         prune_cmd = [
                             "python", "run_pruning.py",
@@ -101,7 +77,8 @@ def main():
                             "--method", method,
                             "--compression", str(compression),
                             "--mode", mode,
-                            "--onnx"
+                            "--onnx",
+                            "--output_dir", run_output_dir
                         ]
                         if is_baseline:
                             prune_cmd.append("--baseline")
