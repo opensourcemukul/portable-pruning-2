@@ -44,7 +44,7 @@ def main():
     models = ["resnet18","resnet34","mobilenet_v2"]
     # models = ["resnet34"]
     methods = ["builtin"]
-    modes = ["l1_unstructured", "ln_structured", "random_structured"]
+    modes = ["l1_unstructured", "ln_structured", "random_structured","random_unstructured"]
     compressions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
     # compressions = [0.1, 0.3, 0.5]
 
