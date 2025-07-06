@@ -134,6 +134,3 @@ MIT License © 2025 Purnendu Prabhat
 ```
 
 ---
-
-Just copy and paste this into your `README.md`. Let me know if you want a version that includes badges (like PyTorch version, build status, etc.) or a table of contents for navigation.
-```
